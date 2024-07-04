@@ -1,0 +1,13 @@
+# OS generated files #
+######################
+.DS_Store
+
+
+#datasets
+cloud_images/others
+cloud_images/ran
+cloud_images/seki
+
+#outputs
+data/res
+data/seg
