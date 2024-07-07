@@ -1,11 +1,10 @@
-GPU使えるようになるまで
-
-
 
 # 研究のために、学科サーバーで環境構築したメモ
 Grounding DINOとSegment Anything Modelの複合したコードを使用すると、ローカルで動かすにはすごく処理が重く、
 google colaboratoryでもコードを3回くらい回すだけで、GPU制限を使い果たしちゃう。
 そこで、[大学のコースの学科サーバー](https://ie.u-ryukyu.ac.jp/syskan/service/singularity/)を使わざるをえなくなった。
+
+GPU使えるようになるまで3週間の環境構築をしました。
 
 # 前提
 琉球大学知能情報コース学科サーバのamaneで作業します。　vscodeで作業できるとすごい楽。下準備としてローカル環境も使う。　　
@@ -45,13 +44,11 @@ docker://の後に自分が選んだimageのリンクを貼り付ける。　　
 `
 Bootstrap: localimage
 From: /home/student/e21/e215736/experiment2/cuda11.4-pytorch-py3.8.10-gpu_latest.sif
-
 %post
     # Python 3.10.13 のインストール
     apt-get update && apt-get install -y wget build-essential zlib1g-dev libncurses5-dev \
     libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev \
     libbz2-dev liblzma-dev
-
     cd /tmp
     wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
     tar xzf Python-3.10.13.tgz
@@ -75,7 +72,7 @@ From: /home/student/e21/e215736/experiment2/cuda11.4-pytorch-py3.8.10-gpu_latest
     PyYAML==6.0.1 regex==2024.5.15 requests==2.32.3 safetensors==0.4.3 six==1.16.0 sympy==1.12.1 \
     tenacity==8.4.2 tokenizers==0.19.1  tqdm==4.66.4 typing_extensions==4.12.2 \
     tzdata==2024.1 urllib3==2.2.2 transformers@git+https://github.com/huggingface/transformers@1c68f2cafb4ca54562f74b66d1085b68dd6682f5
-`  
+  
 + ローカルにある、もってきたsifファイルを指定するようにする。
 + 今回自分が作成したdefファイルは、pythonを3.10.13に入れ直し、下準備のpip freezeで出力したライブラリを全てversion指定で記述している。  
 + ❶でもってきたsifファイルのpythonのバージョンは3.8.10だった。ローカルの環境では3.10.13で実行したので、入れ直す作業をしている。3.10.13のimageを探せなかったのでこのような代替案を試した。  
@@ -93,24 +90,23 @@ From: /home/student/e21/e215736/experiment2/cuda11.4-pytorch-py3.8.10-gpu_latest
   return torch._C._cuda_getDeviceCount() > 0
 `
   
-## ❸以下のようにコマンドを実行し、sifファイルにdefファイルで記述した追加設定を加える。
+## ❸以下のようにコマンドを実行し、defファイルで記述した追加設定を加えられたsifファイルを生成する。
 experiment2.sifはお好きな名前のsifファイルにしてもいい。  
 
 `singularity build --fakeroot experiment2.sif calm-ft.def`　　
 
-
-## train.sbatchファイルを作成し、適宜パスを合わせる。　　
+## ❹train.sbatchファイルを作成し、適宜パスを合わせる。　　
 + 「--nv」はGPU使いますっていう意味。　  
 
-`singularity exec --nv experiment2.sif python3.10  /home/student/e21/e215736/experiment2/g-sam.py`　　
+`singularity exec --nv --cleanenv experiment2.sif /usr/bin/env python3.10 /home/student/e21/e215736/experiment2/check_GPU.py`　　
 　
 
-## logsディレクトリを作成。　　
+## ❺logsディレクトリを作成。　　
 
 + errorファイルとlogファイルが対で出力される。これでちゃんと実行されているかを確認するため。  
 +
 
-## 以下のコマンドを実行。これで終わり。　　
+## ⑥以下のコマンドを実行。これで終わり。　　
 
 `sbatch train.sbatch`　　  
 
