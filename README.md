@@ -9,8 +9,9 @@ GPU使えるようになるまで3週間の環境構築をしました。
 # 前提
 琉球大学知能情報コース学科サーバのamaneで作業します。　vscodeで作業できるとすごい楽。下準備としてローカル環境も使う。　　
 
-# 参考資料
-+ 実行したいファイルの元：[Combining Grounding DINO with Segment Anything (SAM) for text-based mask generation](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Grounding%20DINO/GroundingDINO_with_Segment_Anything.ipynb)  
+# 参考資料  
+レポジトリ内のg-sam.pyはほとんどこのnotebookをpythonファイルに変換し、実行可能にしたもの。  
++ 実行したいファイルの元：[Combining Grounding DINO with Segment Anything (SAM) for text-based mask generation](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Grounding%20DINO/GroundingDINO_with_Segment_Anything.ipynb)
 
 学科サーバー実行手順参考：  
 + [学科サーバで、OpenCALM-3BをLoRAでFine tuningして対話ができるようにしてみる](https://github.com/naltoma/open-calm-finetuning)　　
