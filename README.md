@@ -85,6 +85,7 @@ errorファイルにエラーが出てきたらその都度sifファイルの追
 ## ⑦GPUで動作しているか確認。これで終わり。
 + [check_GPU.py](https://github.com/e215736/build-env_department-server/blob/main/check_GPU.py)をtrain.sbatchのパスに指定し、GPUがちゃんと起動しているかをチェックする。以下の画像のような結果がlogディレクトリに出力されるのを確認する。
 
+<img width="333" alt="Screenshot 2024-07-08 at 19 48 38" src="https://github.com/e215736/build-env_department-server/assets/93558689/b88d2203-0146-4a42-81b2-d9a0dff46c8f">
 
 
 + errorディレクトリには正しくGPUで動かせていた場合何も出力されないが、GPUで認識できていない場合、以下のようなwarningが出る。  
