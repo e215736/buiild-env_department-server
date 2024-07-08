@@ -23,8 +23,8 @@ GPU使えるようになるまで3週間の環境構築をしました。
 - ⚠学科サーバーと対応してるtorch,torchaudio,torchvisionのcudaのバージョンがそもそも古いので、結局実行しようとしているファイルが新しめな技術だった場合GPUで実行できない可能性があり、別のversionのものを入れる可能性が高いため、今はなんでもいいはず。　
 ## 下準備2:ローカル環境で新しい仮想環境を作成し、実行したいファイルが実行できることを確認する。　　
 1. 一旦自分のローカルの環境でゼロからpyenv環境(pyenvだとpythonのversionを細かく設定できる)を作成し、実行したいファイルを実行できるように環境を整える。
-+ grounding DINOとSAMは新しめな技術なので、必要なライブラリは全て新しめじゃないとエラーで動かなかった。一応、conflictが生じたライブラリがある場合、後にsifファイルで新しく指定したversionを入れ直すこともできるが、ライブラリ同士の要求バージョンを調整するのはかなり骨が折れる作業になった。    
-+ ⚠pytorchは学科サーバーのCUDAのバージョンに合わせたpytorchのバージョンをinstallしよう。じゃないと動きません！⚠  
+  + grounding DINOとSAMは新しめな技術なので、必要なライブラリは全て新しめじゃないとエラーで動かなかった。一応、conflictが生じたライブラリがある場合、後にsifファイルで新しく指定したversionを入れ直すこともできるが、ライブラリ同士の要求バージョンを調整するのはかなり骨が折れる作業になった。    
+  + ⚠pytorchは学科サーバーのCUDAのバージョンに合わせたpytorchのバージョンをinstallしよう。じゃないと動きません！⚠  
 [cuda11.4 pytorch]とかで検索し、いけそうなversionを探そう。    
 2. そのあと`pip freeze`コマンドを実行し、その結果をメモしておく。
 メモした結果は後でamaneで作業する時に出てくる**calm-ft.def**という定義ファイルに`pip install　libarary_name==version`という形で書き加える。calm-ft.defファイルを見て貰えばわかるはず。　　
@@ -40,39 +40,7 @@ docker://の後に自分が選んだimageのリンクを貼り付ける。　　
 
 
 ## ❷calm-ft.defファイルを作成し、必要なライブラリに応じて修正・追加する。　
-+ 今回自分が作成したdefファイル  
-`
-Bootstrap: localimage
-From: /home/student/e21/e215736/experiment2/cuda11.4-pytorch-py3.8.10-gpu_latest.sif
-%post
-    # Python 3.10.13 のインストール
-    apt-get update && apt-get install -y wget build-essential zlib1g-dev libncurses5-dev \
-    libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev \
-    libbz2-dev liblzma-dev
-    cd /tmp
-    wget https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
-    tar xzf Python-3.10.13.tgz
-    cd Python-3.10.13
-    ./configure --enable-optimizations
-    make altinstall
-
-    # pip のアップグレード
-    python3.10 -m pip install --upgrade pip
-
-    #cuda11.4に対応するtorchをinstallする。
-    pip3 uninstall --yes torch torchaudio torchvision
-    pip3 install torch==2.0.1 torchaudio torchvision
-
-    # 必要なパッケージのインストール
-    python3.10 -m pip install certifi==2024.6.2 charset-normalizer==3.3.2 contourpy==1.2.1 \
-    cycler==0.12.1 filelock==3.15.4 fonttools==4.53.0 fsspec==2024.6.1 huggingface-hub==0.23.4 \
-    idna==3.7 Jinja2==3.1.4 kiwisolver==1.4.5 MarkupSafe==2.1.5 matplotlib==3.9.0 mpmath==1.3.0 \
-    networkx==3.3 numpy==1.26.4 opencv-python==4.10.0.84 packaging==24.1 pandas==2.2.2 \
-    pillow==10.3.0 plotly==5.22.0 pyparsing==3.1.2 python-dateutil==2.9.0.post0 pytz==2024.1 \
-    PyYAML==6.0.1 regex==2024.5.15 requests==2.32.3 safetensors==0.4.3 six==1.16.0 sympy==1.12.1 \
-    tenacity==8.4.2 tokenizers==0.19.1  tqdm==4.66.4 typing_extensions==4.12.2 \
-    tzdata==2024.1 urllib3==2.2.2 transformers@git+https://github.com/huggingface/transformers@1c68f2cafb4ca54562f74b66d1085b68dd6682f5
-  
++ [今回自分が作成したdefファイル]{https://github.com/e215736/build-env_department-server/blob/main/calm-ft.def}  
 + ローカルにある、もってきたsifファイルを指定するようにする。
 + 今回自分が作成したdefファイルは、pythonを3.10.13に入れ直し、下準備のpip freezeで出力したライブラリを全てversion指定で記述している。  
 + ❶でもってきたsifファイルのpythonのバージョンは3.8.10だった。ローカルの環境では3.10.13で実行したので、入れ直す作業をしている。3.10.13のimageを探せなかったのでこのような代替案を試した。  
@@ -95,16 +63,18 @@ experiment2.sifはお好きな名前のsifファイルにしてもいい。
 
 `singularity build --fakeroot experiment2.sif calm-ft.def`　　
 
-## ❹train.sbatchファイルを作成し、適宜パスを合わせる。　　
-+ 「--nv」はGPU使いますっていう意味。　  
+## ❹train.sbatchファイルを作成し、適宜パスを合わせる。　
++ 今回作成した[train.sbatch](https://github.com/e215736/build-env_department-server/blob/main/train.sbatch)　
++ `--nv」`はGPU使いますっていう意味。
++ `--cleanenv` オプションは、Singularity コンテナ内の環境変数をクリーンな状態にし、ホスト環境の影響を受けないようにしている。これがなくても実行に影響はなかったけど一応。  
 
 `singularity exec --nv --cleanenv experiment2.sif /usr/bin/env python3.10 /home/student/e21/e215736/experiment2/check_GPU.py`　　
 　
 
 ## ❺logsディレクトリを作成。　　
-
-+ errorファイルとlogファイルが対で出力される。これでちゃんと実行されているかを確認するため。  
-+
+train.sbatchでファイル実行時に、errorファイルとlogファイルが対で出力される。ちゃんと実行されているかを確認できる。  
++ logファイル：print文やファイルの実行開始や終了が記述される。
++ errorファイル：warning,error,import errorなどが出力される
 
 ## ⑥以下のコマンドを実行。これで終わり。　　
 
