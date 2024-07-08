@@ -65,7 +65,7 @@ experiment2.sifはお好きな名前のsifファイルにしてもいい。
 
 ## ❹train.sbatchファイルを作成し、適宜パスを合わせる。　
 + 今回作成した[train.sbatch](https://github.com/e215736/build-env_department-server/blob/main/train.sbatch)　
-+ `--nv」`はGPU使いますっていう意味。
++ `--nv`はGPU使いますっていう意味。
 + `--cleanenv` オプションは、Singularity コンテナ内の環境変数をクリーンな状態にし、ホスト環境の影響を受けないようにしている。これがなくても実行に影響はなかったけど一応。  
 
 `singularity exec --nv --cleanenv experiment2.sif /usr/bin/env python3.10 /home/student/e21/e215736/experiment2/g-sam.py`　　
