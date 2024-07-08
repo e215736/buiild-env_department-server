@@ -23,9 +23,11 @@ GPU使えるようになるまで3週間の環境構築をしました。
 - ⚠学科サーバーと対応してるtorch,torchaudio,torchvisionのcudaのバージョンがそもそも古いので、結局実行しようとしているファイルが新しめな技術だった場合GPUで実行できない可能性があり、別のversionのものを入れる可能性が高いため、今はなんでもいいはず。　
 ## 下準備2:ローカル環境で新しい仮想環境を作成し、実行したいファイルが実行できることを確認する。　　
 1. 一旦自分のローカルの環境でゼロからpyenv環境(pyenvだとpythonのversionを細かく設定できる)を作成し、実行したいファイルを実行できるように環境を整える。
-  + grounding DINOとSAMは新しめな技術なので、必要なライブラリは全て新しめじゃないとエラーで動かなかった。一応、conflictが生じたライブラリがある場合、後にsifファイルで新しく指定したversionを入れ直すこともできるが、ライブラリ同士の要求バージョンを調整するのはかなり骨が折れる作業になった。    
-  + ⚠pytorchは学科サーバーのCUDAのバージョンに合わせたpytorchのバージョンをinstallしよう。じゃないと動きません！⚠  
-[cuda11.4 pytorch]とかで検索し、いけそうなversionを探そう。    
+
++ grounding DINOとSAMは新しめな技術なので、必要なライブラリは全て新しめじゃないとエラーで動かなかった。一応、conflictが生じたライブラリがある場合、後にsifファイルで新しく指定したversionを入れ直すこともできるが、ライブラリ同士の要求バージョンを調整するのはかなり骨が折れる作業になった。    
+
++ ⚠pytorchは学科サーバーのCUDAのバージョンに合わせたpytorchのバージョンをinstallしよう。じゃないと動きません！⚠  
+[cuda11.4 pytorch]とかで検索し、いけそうなversionを探そう。     
 2. そのあと`pip freeze`コマンドを実行し、その結果をメモしておく。
 メモした結果は後でamaneで作業する時に出てくる**calm-ft.def**という定義ファイルに`pip install　libarary_name==version`という形で書き加える。calm-ft.defファイルを見て貰えばわかるはず。　　
 
@@ -47,16 +49,13 @@ docker://の後に自分が選んだimageのリンクを貼り付ける。　　
 + またCUDA11.4に対応したpytorchをinstallしないといけないため、以下のような記述をする。
 `
     #cuda11.4に対応するtorchをinstallする。
+
     pip3 uninstall --yes torch torchaudio torchvision
+
     pip3 install torch==2.0.1 torchaudio torchvision
 `   
 最新版のtorchではGPUで実行することはできなかったが、
-2.0.1だとCUDA11.4に対応し、GPUでファイルを実行することができた。GPUで認識できていない場合、以下のようなwarningが出ていた。  
-
-`
-/usr/local/lib/python3.10/site-packages/torch/cuda/__init__.py:118: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 11040). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at ../c10/cuda/CUDAFunctions.cpp:108.)
-  return torch._C._cuda_getDeviceCount() > 0
-`
+2.0.1だとCUDA11.4に対応し、GPUでファイルを実行することができた。
   
 ## ❸以下のようにコマンドを実行し、defファイルで記述した追加設定を加えられたsifファイルを生成する。
 experiment2.sifはお好きな名前のsifファイルにしてもいい。  
@@ -68,7 +67,7 @@ experiment2.sifはお好きな名前のsifファイルにしてもいい。
 + `--nv」`はGPU使いますっていう意味。
 + `--cleanenv` オプションは、Singularity コンテナ内の環境変数をクリーンな状態にし、ホスト環境の影響を受けないようにしている。これがなくても実行に影響はなかったけど一応。  
 
-`singularity exec --nv --cleanenv experiment2.sif /usr/bin/env python3.10 /home/student/e21/e215736/experiment2/check_GPU.py`　　
+`singularity exec --nv --cleanenv experiment2.sif /usr/bin/env python3.10 /home/student/e21/e215736/experiment2/g-sam.py`　　
 　
 
 ## ❺logsディレクトリを作成。　　
@@ -76,10 +75,22 @@ train.sbatchでファイル実行時に、errorファイルとlogファイルが
 + logファイル：print文やファイルの実行開始や終了が記述される。
 + errorファイル：warning,error,import errorなどが出力される
 
-## ⑥以下のコマンドを実行。これで終わり。　　
+## ⑥以下のコマンドを実行。　　
 
 `sbatch train.sbatch`　　  
 
 errorファイルにエラーが出てきたらその都度sifファイルの追加設定を修正して正常に動かしたいファイルが実行できるまで繰り返す。  
 だめだったら、ベースimageからまた探しに行く。メンタル勝負です。　　
+
+## ⑦GPUで動作しているか確認。これで終わり。
++ [check_GPU.py](https://github.com/e215736/build-env_department-server/blob/main/check_GPU.py)をtrain.sbatchのパスに指定し、GPUがちゃんと起動しているかをチェックする。以下の画像のような結果がlogディレクトリに出力されるのを確認する。
+
+
+
++ errorディレクトリには正しくGPUで動かせていた場合何も出力されないが、GPUで認識できていない場合、以下のようなwarningが出る。  
+
+`
+/usr/local/lib/python3.10/site-packages/torch/cuda/__init__.py:118: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 11040). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at ../c10/cuda/CUDAFunctions.cpp:108.)
+  return torch._C._cuda_getDeviceCount() > 0
+`
 
